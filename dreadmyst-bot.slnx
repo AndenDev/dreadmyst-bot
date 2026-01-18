@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="dreadmyst-bot.vcxproj" Id="c90f32a8-e0e1-4bfa-983f-75dd224808b0" />
+</Solution>
