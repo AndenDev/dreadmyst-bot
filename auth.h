@@ -5,23 +5,6 @@
 #include <string>
 
 namespace network {
-
-	enum packet_id : WORD {
-   		 PACKET_AUTH = 0x0002,
-	};
-
-	#pragma pack(push, 1)
-	struct auth_packet {
-	    WORD packet_id;         
-	    char token[256];         
-	    DWORD build_version;    
-	    char hardware_id[33];    
-	};
-	struct character_select_packet {
-	    WORD packet_id;          
-	    DWORD character_id;      
-	};	
-	#pragma pack(pop)
 	class auth {
 	public:	
 		static bool login(const std::string& username, const std::string& password);
