@@ -1,18 +1,99 @@
 #include "handler.h"
+#include "packets.h"
 #include "manager.h"
 #include <stdio.h>
+#include <sstream>
+#include <iomanip>
+#include <intrin.h>
 
 namespace network {
 
-	packet_buffer* handler::create_packet_buffer(const std::vector<unsigned char>& data) {
+	std::string handler::get_machine_fingerprint() {
+		static std::string cached_fingerprint;
+		
+		if (!cached_fingerprint.empty()) {
+			return cached_fingerprint;
+		}
+
+		std::ostringstream out;
+
+		
+		char user[256] = {};
+		DWORD userLen = sizeof(user);
+		GetUserNameA(user, &userLen);
+
+		
+		char computer[256] = {};
+		DWORD compLen = sizeof(computer);
+		GetComputerNameA(computer, &compLen);
+
+		
+		SYSTEM_INFO si;
+		GetSystemInfo(&si);
+
+		
+		int cpuInfo[4] = {};
+		__cpuid(cpuInfo, 0);
+		char vendor[13];
+		memcpy(vendor + 0, &cpuInfo[1], 4);
+		memcpy(vendor + 4, &cpuInfo[3], 4);
+		memcpy(vendor + 8, &cpuInfo[2], 4);
+		vendor[12] = 0;
+
+		
+		char brand[49] = {};
+		__cpuid(cpuInfo, 0x80000002);
+		memcpy(brand, cpuInfo, 16);
+		__cpuid(cpuInfo, 0x80000003);
+		memcpy(brand + 16, cpuInfo, 16);
+		__cpuid(cpuInfo, 0x80000004);
+		memcpy(brand + 32, cpuInfo, 16);
+
+		
+		MEMORYSTATUSEX ms = {};
+		ms.dwLength = sizeof(ms);
+		GlobalMemoryStatusEx(&ms);
+		DWORD memRounded = (DWORD)((ms.ullTotalPhys / (1024ULL * 1024 * 512)) * 512);
+
+		
+		out << user << "|"
+			<< computer << "|"
+			<< si.dwNumberOfProcessors << "|"
+			<< vendor << "|"
+			<< brand << "|"
+			<< memRounded;
+
+		std::string fingerprint_data = out.str();
+
+		
+		unsigned int hash = 0x12345678;
+		for (size_t i = 0; i < fingerprint_data.length(); i++) {
+			hash = ((hash << 5) + hash) + fingerprint_data[i];
+		}
+
+		
+		std::stringstream result;
+		result << std::hex << std::setfill('0');
+		for (int i = 0; i < 8; i++) {
+			unsigned int segment = hash * (i + 1) + fingerprint_data.length() * (i + 7);
+			result << std::setw(4) << (segment & 0xFFFF);
+		}
+
+		cached_fingerprint = result.str();
+		printf("[HWID] Generated hardware fingerprint: %s\n", cached_fingerprint.c_str());
+
+		return cached_fingerprint;
+	}
+
+	packet_buffer* handler::create_packet_buffer(void* data, size_t size) {
 		packet_buffer* packet = (packet_buffer*)malloc(sizeof(packet_buffer));
 		memset(packet, 0, sizeof(packet_buffer));
 
-		char* buffer = (char*)malloc(data.size());
-		memcpy(buffer, data.data(), data.size());
+		char* buffer = (char*)malloc(size);
+		memcpy(buffer, data, size);
 
 		packet->m_data_start = buffer;
-		packet->m_data_end = buffer + data.size();
+		packet->m_data_end = buffer + size;
 
 		return packet;
 	}
@@ -20,6 +101,7 @@ namespace network {
 	void handler::send_packet(packet_buffer* packet) {
 		void* network_mgr = game::manager::get_network_manager();
 		if (!network_mgr) {
+			printf("[PACKET] Failed to get network manager\n");
 			free(packet->m_data_start);
 			free(packet);
 			return;
@@ -28,6 +110,7 @@ namespace network {
 		pfn_game_send_packet send_func = game::manager::get_send_packet_func();
 		if (send_func) {
 			send_func(network_mgr, packet);
+			printf("[PACKET] Sent packet (%zu bytes)\n", packet->m_data_end - packet->m_data_start);
 		}
 
 		free(packet->m_data_start);
@@ -37,12 +120,15 @@ namespace network {
 	bool handler::connect_to_server() {
 		void* network_mgr = game::manager::get_network_manager();
 		if (!network_mgr) {
+			printf("[CONNECT] Failed to get network manager\n");
 			return false;
 		}
 
 		DWORD base_addr = game::manager::get_base_address();
 		DWORD connect_func = base_addr + 0x24DB0;
 		char result = 0;
+
+		printf("[CONNECT] Attempting connection to game server...\n");
 
 		__asm {
 			push ebp
@@ -53,107 +139,58 @@ namespace network {
 			pop ebp
 		}
 
+		if (result) {
+			printf("[CONNECT] Successfully connected to game server\n");
+		}
+		else {
+			printf("[CONNECT] Failed to connect to game server\n");
+		}
+
 		return result != 0;
 	}
 
 	bool handler::send_auth_packet(const std::string& token) {
 		if (token.empty()) {
+			printf("[AUTH PACKET] Token is empty\n");
 			return false;
 		}
 
-
-		std::vector<unsigned char> data;
-
+		auth_packet pkt = {};
+		pkt.packet_id = PACKET_AUTH;
 		
-		data.push_back(0x02);
-		data.push_back(0x00);
-
+		strncpy_s(pkt.token, sizeof(pkt.token), token.c_str(), _TRUNCATE);
+		pkt.build_version = 0x04AD;
 		
-		for (char c : token) {
-			data.push_back((unsigned char)c);
-		}
-		data.push_back(0x00);
+		std::string hwid = get_machine_fingerprint();
+		strncpy_s(pkt.hardware_id, sizeof(pkt.hardware_id), hwid.c_str(), _TRUNCATE);
 
-		
-		data.push_back(0xAD);
-		data.push_back(0x04);
-		data.push_back(0x00);
-		data.push_back(0x00);
+		printf("[AUTH PACKET] Sending authentication packet\n");
+		printf("[AUTH PACKET] Token: %s\n", token.c_str());
+		printf("[AUTH PACKET] Build: 1197 (0x04AD)\n");
+		printf("[AUTH PACKET] Hardware ID: %s\n", hwid.c_str());
 
-		
-		std::string hardware_id = "91bb435ce51beb36cf62eaad847b024d";
-		for (char c : hardware_id) {
-			data.push_back((unsigned char)c);
-		}
-		data.push_back(0x00);
+		size_t token_len = strlen(pkt.token) + 1;  
+		size_t hwid_len = strlen(pkt.hardware_id) + 1; 
+		size_t packet_size = sizeof(WORD) + token_len + sizeof(DWORD) + hwid_len;
 
-		packet_buffer* packet = create_packet_buffer(data);
+	
+		packet_buffer* packet = create_packet_buffer(&pkt, packet_size);
 		send_packet(packet);
-
 
 		return true;
 	}
 
 	bool handler::send_character_select(DWORD character_id) {
-		
+		printf("[CHAR SELECT] Sending character select packet (ID: 0x%08X)\n", character_id);
 
-		std::vector<unsigned char> data;
+		character_select_packet pkt = {};
+		pkt.packet_id = PACKET_CHARACTER_SELECT;
+		pkt.character_id = character_id;
 
-		
-		data.push_back(0x05);
-		data.push_back(0x00);
-
-	
-		data.push_back((character_id) & 0xFF);
-		data.push_back((character_id >> 8) & 0xFF);
-		data.push_back((character_id >> 16) & 0xFF);
-		data.push_back((character_id >> 24) & 0xFF);
-
-		packet_buffer* packet = create_packet_buffer(data);
+		packet_buffer* packet = create_packet_buffer(&pkt, sizeof(pkt));
 		send_packet(packet);
 
 		return true;
 	}
 
-	bool handler::send_move_packet(int x, int y) {
-		
-
-		std::vector<unsigned char> data;
-
-		data.push_back(0x10);
-		data.push_back(0x00);
-
-
-		data.push_back((x) & 0xFF);
-		data.push_back((x >> 8) & 0xFF);
-
-		data.push_back((y) & 0xFF);
-		data.push_back((y >> 8) & 0xFF);
-
-		packet_buffer* packet = create_packet_buffer(data);
-		send_packet(packet);
-
-		return true;
-	}
-
-	bool handler::send_attack_packet(DWORD target_id) {
-		
-
-		std::vector<unsigned char> data;
-
-		data.push_back(0x15);
-		data.push_back(0x00);
-
-		
-		data.push_back((target_id) & 0xFF);
-		data.push_back((target_id >> 8) & 0xFF);
-		data.push_back((target_id >> 16) & 0xFF);
-		data.push_back((target_id >> 24) & 0xFF);
-
-		packet_buffer* packet = create_packet_buffer(data);
-		send_packet(packet);
-
-		return true;
-	}
-
-} 
+}
