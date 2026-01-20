@@ -1,9 +1,8 @@
-#ifndef DREADMYST_NETWORK_H
-#define DREADMYST_NETWORK_H
+#ifndef DREADMYST_HANDLER_H
+#define DREADMYST_HANDLER_H
 
 #include "common.h"
 #include <string>
-
 
 namespace network {
 
@@ -12,14 +11,14 @@ namespace network {
 		static bool connect_to_server();
 		static bool send_auth_packet(const std::string& token);
 		static bool send_character_select(DWORD character_id);
-		static bool send_move_packet(int x, int y);
-		static bool send_attack_packet(DWORD target_id);
+		
+		static std::string get_machine_fingerprint();
 
 	private:
-		static packet_buffer* create_packet_buffer(const std::vector<unsigned char>& data);
+		static packet_buffer* create_packet_buffer(void* data, size_t size);
 		static void send_packet(packet_buffer* packet);
 	};
 
 } 
 
-#endif 
+#endif
