@@ -7,7 +7,7 @@
 namespace network {
 	class auth {
 	public:	
-		static bool login(const std::string& username, const std::string& password);
+		static bool login( const std::string& username, const std::string& password);
 		static const std::string& get_session_token();
 		static const std::string& get_last_error();
 

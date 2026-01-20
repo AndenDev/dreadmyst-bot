@@ -27,18 +27,19 @@ namespace network {
 		return fingerprint;
 	}
 
-	packet_buffer* handler::create_packet_buffer(void* data, size_t size) {
+	packet_buffer* handler::create_packet_buffer(const std::vector<unsigned char>& data) {
 		packet_buffer* packet = (packet_buffer*)malloc(sizeof(packet_buffer));
 		memset(packet, 0, sizeof(packet_buffer));
 
-		char* buffer = (char*)malloc(size);
-		memcpy(buffer, data, size);
+		char* buffer = (char*)malloc(data.size());
+		memcpy(buffer, data.data(), data.size());
 
 		packet->m_data_start = buffer;
-		packet->m_data_end = buffer + size;
+		packet->m_data_end = buffer + data.size();
 
 		return packet;
 	}
+
 
 	void handler::send_packet(packet_buffer* packet) {
 		void* network_mgr = game::manager::get_network_manager();
@@ -67,7 +68,7 @@ namespace network {
 		}
 
 		DWORD base_addr = game::manager::get_base_address();
-		DWORD connect_func = base_addr + 0x24DB0;
+		DWORD connect_func = base_addr + 0x26080;
 		char result = 0;
 
 		printf("[CONNECT] Attempting connection to game server...\n");
@@ -91,48 +92,108 @@ namespace network {
 		return result != 0;
 	}
 
+	//bool handler::send_auth_packet(const std::string& token) {
+	//	if (token.empty()) {
+	//		printf("[AUTH PACKET] Token is empty\n");
+	//		return false;
+	//	}
+	//	
+	//	auth_packet pkt = {};
+	//	pkt.packet_id = PACKET_AUTH;
+	//	
+	//	strncpy_s(pkt.token, sizeof(pkt.token), token.c_str(), _TRUNCATE);
+	//	
+	//	pkt.build_version = 0x04AD;
+	//	
+	//	std::string hwid = generate_random_fingerprint();
+	//	strncpy_s(pkt.hardware_id, sizeof(pkt.hardware_id), hwid.c_str(), _TRUNCATE);
+
+	//	printf("[AUTH PACKET] Sending authentication packet\n");
+	//	printf("[AUTH PACKET] Token: %s\n", token.c_str());
+	//	printf("[AUTH PACKET] Build: 1197 (0x04AD)\n");
+	//	printf("[AUTH PACKET] Hardware ID: %s\n", hwid.c_str());
+
+	//	size_t token_len = strlen(pkt.token) + 1;
+	//	size_t hwid_len = strlen(pkt.hardware_id) + 1;
+	//	size_t packet_size = sizeof(WORD) + token_len + sizeof(DWORD) + hwid_len;
+
+	//	packet_buffer* packet = create_packet_buffer(&pkt, packet_size);
+	//	send_packet(packet);
+
+	//	return true;
+	//}
+
+	//bool handler::send_character_select(DWORD character_id) {
+	//	printf("[CHAR SELECT] Sending character select packet (ID: 0x%08X)\n", character_id);
+
+	//	character_select_packet pkt = {};
+	//	pkt.packet_id = PACKET_CHARACTER_SELECT;
+	//	pkt.character_id = character_id;
+
+	//	packet_buffer* packet = create_packet_buffer(&pkt, sizeof(pkt));
+	//	send_packet(packet);
+
+	//	return true;
+	//}
+
+
+
 	bool handler::send_auth_packet(const std::string& token) {
 		if (token.empty()) {
-			printf("[AUTH PACKET] Token is empty\n");
 			return false;
 		}
-		
-		auth_packet pkt = {};
-		pkt.packet_id = PACKET_AUTH;
-		
-		strncpy_s(pkt.token, sizeof(pkt.token), token.c_str(), _TRUNCATE);
-		
-		pkt.build_version = 0x04AD;
-		
-		std::string hwid = generate_random_fingerprint();
-		strncpy_s(pkt.hardware_id, sizeof(pkt.hardware_id), hwid.c_str(), _TRUNCATE);
 
-		printf("[AUTH PACKET] Sending authentication packet\n");
-		printf("[AUTH PACKET] Token: %s\n", token.c_str());
-		printf("[AUTH PACKET] Build: 1197 (0x04AD)\n");
-		printf("[AUTH PACKET] Hardware ID: %s\n", hwid.c_str());
 
-		size_t token_len = strlen(pkt.token) + 1;
-		size_t hwid_len = strlen(pkt.hardware_id) + 1;
-		size_t packet_size = sizeof(WORD) + token_len + sizeof(DWORD) + hwid_len;
+		std::vector<unsigned char> data;
 
-		packet_buffer* packet = create_packet_buffer(&pkt, packet_size);
+
+		data.push_back(0x02);
+		data.push_back(0x00);
+
+
+		for (char c : token) {
+			data.push_back((unsigned char)c);
+		}
+		data.push_back(0x00);
+
+
+		data.push_back(0xAD);
+		data.push_back(0x04);
+		data.push_back(0x00);
+		data.push_back(0x00);
+
+
+		std::string hardware_id = generate_random_fingerprint();
+		for (char c : hardware_id) {
+			data.push_back((unsigned char)c);
+		}
+		data.push_back(0x00);
+
+		packet_buffer* packet = create_packet_buffer(data);
 		send_packet(packet);
+
 
 		return true;
 	}
 
 	bool handler::send_character_select(DWORD character_id) {
-		printf("[CHAR SELECT] Sending character select packet (ID: 0x%08X)\n", character_id);
 
-		character_select_packet pkt = {};
-		pkt.packet_id = PACKET_CHARACTER_SELECT;
-		pkt.character_id = character_id;
 
-		packet_buffer* packet = create_packet_buffer(&pkt, sizeof(pkt));
+		std::vector<unsigned char> data;
+
+
+		data.push_back(0x05);
+		data.push_back(0x00);
+
+
+		data.push_back((character_id) & 0xFF);
+		data.push_back((character_id >> 8) & 0xFF);
+		data.push_back((character_id >> 16) & 0xFF);
+		data.push_back((character_id >> 24) & 0xFF);
+
+		packet_buffer* packet = create_packet_buffer(data);
 		send_packet(packet);
 
 		return true;
 	}
-
 }

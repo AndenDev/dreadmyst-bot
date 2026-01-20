@@ -140,7 +140,7 @@
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="handler.cpp" />
     <ClCompile Include="manager.cpp" />
-    <ClCompile Include="string_utils.cpp" />
+    <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="auth.h" />
@@ -150,7 +150,8 @@
     <ClInclude Include="controller.h" />
     <ClInclude Include="handler.h" />
     <ClInclude Include="manager.h" />
-    <ClInclude Include="string_utils.h" />
+    <ClInclude Include="packets.h" />
+    <ClInclude Include="utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

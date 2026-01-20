@@ -14,6 +14,25 @@
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "crypt32.lib")
 
+
+struct game_string {
+	union {
+		char m_buffer[16];
+		char* m_ptr;
+	};
+	size_t m_length;
+	size_t m_capacity;
+};
+
+struct game_wstring {
+	union {
+		WCHAR m_buffer[8];
+		WCHAR* m_ptr;
+	};
+	size_t m_length;
+	size_t m_capacity;
+};
+
 struct packet_buffer {
 	void* m_vtable;
 	void* m_unknown1;

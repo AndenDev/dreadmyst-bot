@@ -33,10 +33,10 @@
     <ClCompile Include="manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="string_utils.cpp">
+    <ClCompile Include="config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="config.cpp">
+    <ClCompile Include="utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -59,10 +59,13 @@
     <ClInclude Include="auto_login.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="string_utils.h">
+    <ClInclude Include="config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="config.h">
+    <ClInclude Include="packets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -53,7 +53,6 @@ namespace config {
 		if (!file.is_open()) {
 			return false;
 		}
-
 		std::string line;
 		std::string current_section;
 

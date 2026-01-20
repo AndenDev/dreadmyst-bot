@@ -14,8 +14,8 @@ namespace game {
 			return false;
 		}
 
-		s_game_send_packet = (pfn_game_send_packet)(s_game_base_address + 0x24D20);
-		s_game_login = (pfn_game_login)(s_game_base_address + 0x24FE0);
+		s_game_send_packet = (pfn_game_send_packet)(s_game_base_address + 0x25FF0);
+		s_game_login = (pfn_game_login)(s_game_base_address + 0x262B0);
 		s_get_network_manager = (pfn_get_network_manager)(s_game_base_address + 0x4180);
 
 		return true;

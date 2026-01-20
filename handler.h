@@ -15,7 +15,7 @@ namespace network {
 		static std::string generate_random_fingerprint();
 
 	private:
-		static packet_buffer* create_packet_buffer(void* data, size_t size);
+		static packet_buffer* create_packet_buffer(const std::vector<unsigned char>& data);
 		static void send_packet(packet_buffer* packet);
 	};
 } 
