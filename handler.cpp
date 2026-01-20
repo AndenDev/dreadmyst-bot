@@ -5,84 +5,26 @@
 #include <sstream>
 #include <iomanip>
 #include <intrin.h>
+#include <random>
 
 namespace network {
 
-	std::string handler::get_machine_fingerprint() {
-		static std::string cached_fingerprint;
-		
-		if (!cached_fingerprint.empty()) {
-			return cached_fingerprint;
-		}
+	std::string handler::generate_random_fingerprint() {
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> dis(0, 15);
 
-		std::ostringstream out;
-
-		
-		char user[256] = {};
-		DWORD userLen = sizeof(user);
-		GetUserNameA(user, &userLen);
-
-		
-		char computer[256] = {};
-		DWORD compLen = sizeof(computer);
-		GetComputerNameA(computer, &compLen);
-
-		
-		SYSTEM_INFO si;
-		GetSystemInfo(&si);
-
-		
-		int cpuInfo[4] = {};
-		__cpuid(cpuInfo, 0);
-		char vendor[13];
-		memcpy(vendor + 0, &cpuInfo[1], 4);
-		memcpy(vendor + 4, &cpuInfo[3], 4);
-		memcpy(vendor + 8, &cpuInfo[2], 4);
-		vendor[12] = 0;
-
-		
-		char brand[49] = {};
-		__cpuid(cpuInfo, 0x80000002);
-		memcpy(brand, cpuInfo, 16);
-		__cpuid(cpuInfo, 0x80000003);
-		memcpy(brand + 16, cpuInfo, 16);
-		__cpuid(cpuInfo, 0x80000004);
-		memcpy(brand + 32, cpuInfo, 16);
-
-		
-		MEMORYSTATUSEX ms = {};
-		ms.dwLength = sizeof(ms);
-		GlobalMemoryStatusEx(&ms);
-		DWORD memRounded = (DWORD)((ms.ullTotalPhys / (1024ULL * 1024 * 512)) * 512);
-
-		
-		out << user << "|"
-			<< computer << "|"
-			<< si.dwNumberOfProcessors << "|"
-			<< vendor << "|"
-			<< brand << "|"
-			<< memRounded;
-
-		std::string fingerprint_data = out.str();
-
-		
-		unsigned int hash = 0x12345678;
-		for (size_t i = 0; i < fingerprint_data.length(); i++) {
-			hash = ((hash << 5) + hash) + fingerprint_data[i];
-		}
-
-		
 		std::stringstream result;
 		result << std::hex << std::setfill('0');
-		for (int i = 0; i < 8; i++) {
-			unsigned int segment = hash * (i + 1) + fingerprint_data.length() * (i + 7);
-			result << std::setw(4) << (segment & 0xFFFF);
+		
+		for (int i = 0; i < 32; i++) {
+			result << std::hex << dis(gen);
 		}
 
-		cached_fingerprint = result.str();
-		printf("[HWID] Generated hardware fingerprint: %s\n", cached_fingerprint.c_str());
-
-		return cached_fingerprint;
+		std::string fingerprint = result.str();
+		printf("[HWID] Generated random fingerprint: %s\n", fingerprint.c_str());
+		
+		return fingerprint;
 	}
 
 	packet_buffer* handler::create_packet_buffer(void* data, size_t size) {
@@ -154,14 +96,15 @@ namespace network {
 			printf("[AUTH PACKET] Token is empty\n");
 			return false;
 		}
-
+		
 		auth_packet pkt = {};
 		pkt.packet_id = PACKET_AUTH;
 		
 		strncpy_s(pkt.token, sizeof(pkt.token), token.c_str(), _TRUNCATE);
+		
 		pkt.build_version = 0x04AD;
 		
-		std::string hwid = get_machine_fingerprint();
+		std::string hwid = generate_random_fingerprint();
 		strncpy_s(pkt.hardware_id, sizeof(pkt.hardware_id), hwid.c_str(), _TRUNCATE);
 
 		printf("[AUTH PACKET] Sending authentication packet\n");
@@ -169,11 +112,10 @@ namespace network {
 		printf("[AUTH PACKET] Build: 1197 (0x04AD)\n");
 		printf("[AUTH PACKET] Hardware ID: %s\n", hwid.c_str());
 
-		size_t token_len = strlen(pkt.token) + 1;  
-		size_t hwid_len = strlen(pkt.hardware_id) + 1; 
+		size_t token_len = strlen(pkt.token) + 1;
+		size_t hwid_len = strlen(pkt.hardware_id) + 1;
 		size_t packet_size = sizeof(WORD) + token_len + sizeof(DWORD) + hwid_len;
 
-	
 		packet_buffer* packet = create_packet_buffer(&pkt, packet_size);
 		send_packet(packet);
 
