@@ -18,6 +18,31 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="auth\auth_handler.cpp" />
+    <ClCompile Include="network\connector.cpp" />
+    <ClCompile Include="character\char_handler.cpp" />
+    <ClCompile Include="core\showmsg.cpp" />
+    <ClCompile Include="core\timer.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="network\session.cpp" />
+    <ClCompile Include="network\socket.cpp" />
+    <ClCompile Include="packet\packet_base.cpp" />
+    <ClCompile Include="packet\packet_db.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="auth\auth_handler.hpp" />
+    <ClInclude Include="network\connector.hpp" />
+    <ClInclude Include="character\char_handler.hpp" />
+    <ClInclude Include="core\cbasetypes.hpp" />
+    <ClInclude Include="core\showmsg.hpp" />
+    <ClInclude Include="core\timer.hpp" />
+    <ClInclude Include="network\session.hpp" />
+    <ClInclude Include="network\socket.hpp" />
+    <ClInclude Include="packet\packet_base.hpp" />
+    <ClInclude Include="packet\packet_db.hpp" />
+    <ClInclude Include="packet\packet_def.hpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -34,9 +59,9 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -94,14 +119,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libMinHook.x86.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -132,27 +156,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="auth.cpp" />
-    <ClCompile Include="auto_login.cpp" />
-    <ClCompile Include="config.cpp" />
-    <ClCompile Include="controller.cpp" />
-    <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="handler.cpp" />
-    <ClCompile Include="manager.cpp" />
-    <ClCompile Include="utils.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="auth.h" />
-    <ClInclude Include="auto_login.h" />
-    <ClInclude Include="common.h" />
-    <ClInclude Include="config.h" />
-    <ClInclude Include="controller.h" />
-    <ClInclude Include="handler.h" />
-    <ClInclude Include="manager.h" />
-    <ClInclude Include="packets.h" />
-    <ClInclude Include="utils.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -15,57 +15,69 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp">
+    <ClCompile Include="auth\auth_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="controller.cpp">
+    <ClCompile Include="network\connector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="auto_login.cpp">
+    <ClCompile Include="character\char_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="handler.cpp">
+    <ClCompile Include="core\showmsg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="auth.cpp">
+    <ClCompile Include="core\timer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="manager.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="config.cpp">
+    <ClCompile Include="network\session.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils.cpp">
+    <ClCompile Include="network\socket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="packet\packet_base.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="packet\packet_db.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="common.h">
+    <ClInclude Include="auth\auth_handler.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="manager.h">
+    <ClInclude Include="network\connector.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="handler.h">
+    <ClInclude Include="character\char_handler.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="auth.h">
+    <ClInclude Include="core\cbasetypes.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="controller.h">
+    <ClInclude Include="core\showmsg.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="auto_login.h">
+    <ClInclude Include="core\timer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="config.h">
+    <ClInclude Include="network\session.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="packets.h">
+    <ClInclude Include="network\socket.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils.h">
+    <ClInclude Include="packet\packet_base.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="packet\packet_db.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="packet\packet_def.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
