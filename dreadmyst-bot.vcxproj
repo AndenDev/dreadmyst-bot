@@ -19,9 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="auth\auth_handler.cpp" />
+    <ClCompile Include="core\config.cpp" />
     <ClCompile Include="network\connector.cpp" />
-    <ClCompile Include="character\char_handler.cpp" />
     <ClCompile Include="core\showmsg.cpp" />
     <ClCompile Include="core\timer.cpp" />
     <ClCompile Include="main.cpp" />
@@ -29,11 +28,11 @@
     <ClCompile Include="network\socket.cpp" />
     <ClCompile Include="packet\packet_base.cpp" />
     <ClCompile Include="packet\packet_db.cpp" />
+    <ClCompile Include="packet\packet_handler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="auth\auth_handler.hpp" />
+    <ClInclude Include="core\config.hpp" />
     <ClInclude Include="network\connector.hpp" />
-    <ClInclude Include="character\char_handler.hpp" />
     <ClInclude Include="core\cbasetypes.hpp" />
     <ClInclude Include="core\showmsg.hpp" />
     <ClInclude Include="core\timer.hpp" />
@@ -42,6 +41,7 @@
     <ClInclude Include="packet\packet_base.hpp" />
     <ClInclude Include="packet\packet_db.hpp" />
     <ClInclude Include="packet\packet_def.hpp" />
+    <ClInclude Include="packet\packet_handler.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>

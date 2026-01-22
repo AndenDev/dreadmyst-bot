@@ -4,24 +4,12 @@
 #include "core/cbasetypes.hpp"
 #include "core/showmsg.hpp"
 #include "core/timer.hpp"
+#include "core/config.hpp"
 #include "network/socket.hpp"
 #include "network/session.hpp"
 #include "network/connector.hpp"
 #include "packet/packet_db.hpp"
-#include "auth/auth_handler.hpp"
-#include "character/char_handler.hpp"
-
-struct Config {
-    std::string game_host = "game.dreadmyst.com";
-    uint16      game_port = 16383;
-    std::string api_host = "dreadmyst.com";
-    std::string api_path = "/auth/auth.php";
-    std::string username = "test";
-    std::string password = "test";
-    std::string charname = "test";
-    uint32      build_version = 1206;
-    std::string fingerprint = "";
-};
+#include "packet/packet_handler.hpp"
 
 bool wait_for(const std::function<bool()>& condition, int timeout_ms, Session* session)
 {
@@ -39,19 +27,20 @@ bool wait_for(const std::function<bool()>& condition, int timeout_ms, Session* s
     }
 }
 
-bool fetch_character_guid(const Config& cfg, const std::string& token, uint32& out_guid)
+bool fetch_character_guid(const std::string& token, uint32& out_guid)
 {
+    Config& cfg = config_get();
     Session session;
     out_guid = 0;
 
-    if (!session.connect(cfg.game_host, cfg.game_port)) {
+    if (!session.connect(GAME_HOST, GAME_PORT)) {
         ShowError("Connection failed\n");
         return false;
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    if (!auth_send_token(&session, token, cfg.build_version, cfg.fingerprint)) {
+    if (!send_token(&session, token, BUILD_VERSION, "")) {
         ShowError("Failed to send token\n");
         session.disconnect();
         return false;
@@ -63,7 +52,7 @@ bool fetch_character_guid(const Config& cfg, const std::string& token, uint32& o
         return false;
     }
 
-    if (!char_send_request_list(&session)) {
+    if (!send_character_request_list(&session)) {
         ShowError("Failed to request character list\n");
         session.disconnect();
         return false;
@@ -75,7 +64,7 @@ bool fetch_character_guid(const Config& cfg, const std::string& token, uint32& o
         return false;
     }
 
-    const CharacterInfo* ch = session.get_character_by_name(cfg.charname);
+    const CharacterInfo* ch = session.get_character_by_name(cfg.character_name);
     if (!ch && !session.characters().empty())
         ch = &session.characters()[0];
 
@@ -89,16 +78,16 @@ bool fetch_character_guid(const Config& cfg, const std::string& token, uint32& o
     return out_guid != 0;
 }
 
-bool enter_world(const Config& cfg, const std::string& token, uint32 guid, Session& session)
+bool enter_world(const std::string& token, uint32 guid, Session& session)
 {
-    if (!session.connect(cfg.game_host, cfg.game_port)) {
+    if (!session.connect(GAME_HOST, GAME_PORT)) {
         ShowError("Connection failed\n");
         return false;
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    if (!auth_send_token(&session, token, cfg.build_version, cfg.fingerprint)) {
+    if (!send_token(&session, token, BUILD_VERSION, "")) {
         ShowError("Failed to send token\n");
         return false;
     }
@@ -108,7 +97,7 @@ bool enter_world(const Config& cfg, const std::string& token, uint32 guid, Sessi
         return false;
     }
 
-    if (!char_send_enter_world(&session, guid)) {
+    if (!send_enter_world(&session, guid)) {
         ShowError("Failed to enter world\n");
         return false;
     }
@@ -121,37 +110,26 @@ bool enter_world(const Config& cfg, const std::string& token, uint32 guid, Sessi
     return true;
 }
 
-int main(int argc, char* argv[])
+int main()
 {
-    Config cfg;
-
-    for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        if (arg == "--host" && i + 1 < argc)
-            cfg.game_host = argv[++i];
-        else if (arg == "--port" && i + 1 < argc)
-            cfg.game_port = static_cast<uint16>(std::stoi(argv[++i]));
-        else if (arg == "--user" && i + 1 < argc)
-            cfg.username = argv[++i];
-        else if (arg == "--pass" && i + 1 < argc)
-            cfg.password = argv[++i];
-        else if (arg == "--char" && i + 1 < argc)
-            cfg.charname = argv[++i];
-    }
-
     showmsg_init(true);
+    config_init();
     timer_init();
     socket_init();
     packetdb().init();
-    auth_init();
-    char_init();
+    packethandler_init();
+
+    Config& cfg = config_get();
+
+ 
+    config_load("bot.conf");
 
     Connector connector;
     std::string token, error;
     int result = 1;
 
     ShowStatus("Authenticating...\n");
-    if (!connector.authenticate(cfg.api_host, cfg.api_path,
+    if (!connector.authenticate(API_HOST, API_PATH,
         cfg.username, cfg.password, token, error)) {
         ShowFatalError("Auth failed: %s\n", error.c_str());
         goto cleanup;
@@ -159,7 +137,7 @@ int main(int argc, char* argv[])
     ShowStatus("Logged in as %s\n", cfg.username.c_str());
 
     uint32 char_guid;
-    if (!fetch_character_guid(cfg, token, char_guid)) {
+    if (!fetch_character_guid(token, char_guid)) {
         ShowFatalError("No character found\n");
         goto cleanup;
     }
@@ -168,14 +146,12 @@ int main(int argc, char* argv[])
 
     {
         Session session;
-        if (!enter_world(cfg, token, char_guid, session)) {
+        if (!enter_world(token, char_guid, session)) {
             ShowFatalError("Failed to enter world\n");
             goto cleanup;
         }
 
-        ShowStatus("Entered world (Map: %d)\n",
-            session.map_id());
-
+        ShowStatus("Entered world (Map: %d)\n", session.map_id());
 
         while (session.process()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -188,11 +164,11 @@ int main(int argc, char* argv[])
     result = 0;
 
 cleanup:
-    char_final();
-    auth_final();
+    packethandler_final();
     packetdb().final();
     socket_final();
     timer_final();
+    config_final();
     showmsg_final();
     return result;
 }

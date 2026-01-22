@@ -15,13 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="auth\auth_handler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="network\connector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="character\char_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="core\showmsg.cpp">
@@ -45,15 +39,15 @@
     <ClCompile Include="packet\packet_db.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="packet\packet_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="core\config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="auth\auth_handler.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="network\connector.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="character\char_handler.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="core\cbasetypes.hpp">
@@ -78,6 +72,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="packet\packet_def.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="packet\packet_handler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\config.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
